@@ -2,81 +2,36 @@
   <div class="app-wrapper">
     <el-container class="app-container">
 
-      <!-- ================= 左侧：历史记录侧边栏 ================= -->
-      <el-aside width="260px" class="history-sidebar">
-        <!-- 新建对话按钮 -->
-        <div class="sidebar-header">
-          <el-button class="new-btn" @click="createNewTask">
-            <span style="font-size: 16px; margin-right: 8px;">+</span> 新建 API 任务
-          </el-button>
-        </div>
+      <!-- 1. 左侧：历史记录侧边栏 -->
+      <HistorySidebar
+          :history-list="historyList"
+          :current-task-id="currentTaskId"
+          @create-new="createNewTask"
+          @load-task="loadTaskDetails"
+          @delete-task="deleteTask"
+      />
 
-        <!-- 历史列表 -->
-        <div class="history-list">
-          <div
-              v-for="task in historyList"
-              :key="task.id"
-              :class="['history-item', { active: currentTaskId === task.id }]"
-              @click="loadTaskDetails(task)"
-          >
-            <span class="task-name">💬 {{ task.projectName }}</span>
-            <el-button
-                type="danger"
-                link
-                class="delete-btn"
-                @click.stop="deleteTask(task.id)"
-                title="删除任务"
-            >
-              🗑️
-            </el-button>
-          </div>
-        </div>
-      </el-aside>
-
-      <!-- ================= 右侧：工作台主区域 ================= -->
+      <!-- 右侧：工作台主区域 -->
       <el-container class="main-workspace">
         <el-header class="header">
           <h2>🚀 AI-Native API 自动生成工作台</h2>
         </el-header>
 
         <el-container class="main-content">
-          <!-- 左区：输入需求 -->
-          <el-aside width="40%" class="left-panel">
-            <div class="panel-title">1. 输入产品需求 (PRD)</div>
+          <!-- 2. 中间：需求输入区 -->
+          <PrdInput
+              v-model:project-name="projectName"
+              v-model:prd-text="prdText"
+              :is-generating="isGenerating"
+              @generate="startGeneration"
+          />
 
-            <div style="margin-bottom: 20px;">
-              <el-input v-model="projectName" placeholder="给你的项目起个名字 (如：电商订单系统)" size="large" />
-            </div>
-
-            <div style="margin-bottom: 20px;">
-              <el-input
-                  v-model="prdText"
-                  type="textarea"
-                  :rows="12"
-                  placeholder="请用自然语言描述你的业务需求..."
-              />
-            </div>
-
-            <el-button type="primary" size="large" style="width: 100%" @click="startGeneration" :loading="isGenerating">
-              {{ isGenerating ? 'AI 正在疯狂思考中...' : '召唤 AI 架构师，一键生成 API' }}
-            </el-button>
-          </el-aside>
-
-          <!-- 右区：结果展示 -->
-          <el-main class="right-panel" v-loading="isGenerating" element-loading-text="多智能体协作中 (提取需求 -> 架构设计)...">
-            <div class="panel-title" style="display: flex; justify-content: space-between; width: 100%;">
-              <span>2. AI 架构师生成结果</span>
-              <el-button v-if="generatedCode" type="success" size="small" @click="downloadSourceCode">
-                📦 一键下载源码
-              </el-button>
-            </div>
-
-            <el-empty v-if="!generatedCode" description="等待 AI 生成架构代码..." />
-
-            <div v-else class="code-container">
-              <pre><code>{{ generatedCode }}</code></pre>
-            </div>
-          </el-main>
+          <!-- 3. 右侧：代码展示区 -->
+          <CodeViewer
+              :generated-code="generatedCode"
+              :is-generating="isGenerating"
+              @download="downloadSourceCode"
+          />
         </el-container>
       </el-container>
 
@@ -85,6 +40,9 @@
 </template>
 
 <script setup>
+import PrdInput from './components/PrdInput.vue'
+import CodeViewer from './components/CodeViewer.vue'
+import HistorySidebar from './components/HistorySidebar.vue'
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -209,7 +167,7 @@ const downloadSourceCode = () => {
 </script>
 
 <style>
-/* ====== 全局初始化 ====== */
+/* 全局样式保留，其余的都被抽进子组件了！ */
 html, body, #app {
   margin: 0;
   padding: 0;
@@ -229,80 +187,11 @@ html, body, #app {
   display: flex;
 }
 
-/* ====== 左侧边栏 (ChatGPT 风格) ====== */
-.history-sidebar {
-  background-color: #202123;
-  color: white;
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar-header {
-  padding: 16px;
-}
-
-.new-btn {
-  width: 100%;
-  background-color: transparent !important;
-  color: white !important;
-  border: 1px solid #565869 !important;
-  border-radius: 6px;
-  justify-content: flex-start;
-  padding: 12px;
-  transition: all 0.3s;
-}
-
-.new-btn:hover {
-  background-color: #343541 !important;
-}
-
-.history-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0 12px;
-}
-
-.history-item {
-  padding: 12px 14px;
-  margin-bottom: 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: background-color 0.2s;
-  color: #ececf1;
-}
-
-.history-item:hover, .history-item.active {
-  background-color: #343541;
-}
-
-.task-name {
-  font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 1;
-}
-
-/* 垃圾桶默认隐藏，鼠标移上去才显示 */
-.delete-btn {
-  opacity: 0;
-  font-size: 16px;
-  padding: 0 5px;
-}
-
-.history-item:hover .delete-btn {
-  opacity: 1;
-}
-
-/* ====== 右侧主工作区 ====== */
 .main-workspace {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-width: 0; /* 防止子元素撑破 Flex 布局 */
+  min-width: 0;
 }
 
 .header {
@@ -324,34 +213,5 @@ html, body, #app {
   flex: 1;
   padding: 20px;
   gap: 20px;
-}
-
-.left-panel, .right-panel {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.05);
-}
-
-.panel-title {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 20px;
-  color: #303133;
-  border-bottom: 2px solid #e4e7ed;
-  padding-bottom: 10px;
-  display: inline-block;
-}
-
-.code-container {
-  background-color: #282c34;
-  color: #abb2bf;
-  padding: 15px;
-  border-radius: 8px;
-  overflow-y: auto;
-  height: calc(100vh - 200px);
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 14px;
-  line-height: 1.5;
 }
 </style>
