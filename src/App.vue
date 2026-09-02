@@ -24,6 +24,7 @@
               v-model:prd-text="prdText"
               :is-generating="isGenerating"
               @generate="startGeneration"
+              @rename-project="handleRename"
           />
 
           <!-- 3. 右侧：代码展示区 -->
@@ -87,7 +88,7 @@ const createNewTask = () => {
 const loadTaskDetails = async (task) => {
   currentTaskId.value = task.id
   projectName.value = task.projectName
-  prdText.value = '（读取历史记录模式下，直接查看右侧生成的源码）'
+  prdText.value = task.originalPrd
   generatedCode.value = ''
 
   try {
@@ -132,6 +133,10 @@ const startGeneration = async () => {
     ElMessage.warning('请先填写项目名称和需求！')
     return
   }
+
+  //如果是在查看历史记录时点击生成，强制清空当前 ID，当作全新任务来走一遍流程
+  currentTaskId.value = null
+
   isGenerating.value = true
   generatedCode.value = ''
 
@@ -163,6 +168,22 @@ const startGeneration = async () => {
 const downloadSourceCode = () => {
   if (!currentTaskId.value) return
   window.open(`${baseURL}/${currentTaskId.value}/download`, '_blank')
+}
+
+// 处理重命名逻辑
+const handleRename = async () => {
+  // 如果是新建状态（还没生成过），或者名字为空，就不发请求
+  if (!currentTaskId.value || !projectName.value) return;
+
+  try {
+    await axios.put(`${baseURL}/${currentTaskId.value}/name`, null, {
+      params: { newName: projectName.value }
+    })
+    // 静默刷新左侧的历史记录列表
+    fetchHistory()
+  } catch (error) {
+    ElMessage.error('重命名同步失败')
+  }
 }
 </script>
 

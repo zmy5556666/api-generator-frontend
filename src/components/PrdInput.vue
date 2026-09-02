@@ -7,6 +7,7 @@
       <el-input
           :model-value="projectName"
           @input="$emit('update:projectName', $event)"
+          @change="$emit('rename-project')"
           placeholder="给你的项目起个名字 (如：电商订单系统)"
           size="large"
       />
@@ -35,7 +36,7 @@ defineProps({
   isGenerating: Boolean
 })
 
-defineEmits(['update:projectName', 'update:prdText', 'generate'])
+defineEmits(['update:projectName', 'update:prdText', 'generate', 'rename-project'])
 </script>
 
 <style scoped>
