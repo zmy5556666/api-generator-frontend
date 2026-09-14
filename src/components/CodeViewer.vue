@@ -1,5 +1,5 @@
 <template>
-  <el-main class="right-panel" v-loading="isGenerating" element-loading-text="AI 全栈架构师正在疯狂编写项目代码 (DDL, Controller, Service, Mapper)...">
+  <el-main class="right-panel" v-loading="isGenerating" element-loading-text="多智能体协作中：初级架构师绘制草稿 -> Tech Lead 严格代码审查与修复 (预计需要 40 秒)...">
     <div class="panel-title" style="display: flex; justify-content: space-between; width: 100%;">
       <span>2. AI 架构师生成结果 (多文件 VFS)</span>
       <el-button
