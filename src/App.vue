@@ -25,7 +25,7 @@
           />
           <!--3.右侧:代码展示区 -->
           <CodeViewer
-              :generated-code="generatedCode"
+              :generated-files="generatedFiles"
               :is-generating="isGenerating"
               @download="downloadSourceCode"
           />
@@ -50,7 +50,7 @@ const historyList = ref([])
 const currentTaskId = ref(null)
 const projectName = ref('')
 const prdText = ref('')
-const generatedCode = ref('')
+const generatedFiles = ref([])
 const isGenerating = ref(false)
 
 // 【新增】页面一加载,就去后端拉取历史记录
@@ -74,7 +74,7 @@ const createNewTask = () => {
   currentTaskId.value = null
   projectName.value = ''
   prdText.value = ''
-  generatedCode.value = ''
+  generatedFiles.value = []
 }
 
 // 点击侧边栏历史,加载详情
@@ -82,10 +82,10 @@ const loadTaskDetails = async (task) => {
   currentTaskId.value = task.id
   projectName.value = task.projectName
   prdText.value = task.originalPrd
-  generatedCode.value = ''
+  generatedFiles.value = []
   try {
     const res = await axios.get(`${baseURL}/${task.id}/design`)
-    generatedCode.value = res.data.generatedControllerCode
+    generatedFiles.value = res.data.generatedFiles || []
   } catch (error) {
     ElMessage.warning('该任务尚未完成代码生成,或记录已丢失')
   }
@@ -125,7 +125,7 @@ const startGeneration = async () => {
   //如果是在查看历史记录时点击生成,强制清空当前ID,当作全新任务来走一遍流程
   currentTaskId.value = null
   isGenerating.value = true
-  generatedCode.value = ''
+  generatedFiles.value = []
   try {
     const createRes = await axios.post(`${baseURL}/create`, null, { params: { projectName: projectName.value} })
     currentTaskId.value = createRes.data.id
@@ -134,7 +134,7 @@ const startGeneration = async () => {
       prdText: prdText.value
     })
     const designRes = await axios.post(`${baseURL}/${currentTaskId.value}/design`)
-    generatedCode.value = designRes.data.generatedControllerCode
+    generatedFiles.value = designRes.data.generatedFiles || []
     ElMessage.success('API 代码生成成功!')
     // 【新增】生成完毕后,顺便刷新一下左侧的历史列表!
     fetchHistory()

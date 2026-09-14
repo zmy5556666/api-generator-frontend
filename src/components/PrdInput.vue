@@ -2,7 +2,6 @@
   <el-aside width="40%" class="left-panel">
     <div class="panel-title">1.输入产品需求(PRD)</div>
     <div style="margin-bottom: 20px;">
-      <!-- 注意这里把 v-model 拆成了:model-value 和@input,这是组件间传递数据的标准写法 -->
       <el-input
           :model-value="projectName"
           @input="$emit('update:projectName', $event)"
@@ -30,6 +29,7 @@
   </el-aside>
 </template>
 
+<!-- 接收父组件传递的项目名称和需求文本等数据 -->
 <script setup>
 defineProps({
   projectName: String,

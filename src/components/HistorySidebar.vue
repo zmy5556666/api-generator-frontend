@@ -5,7 +5,7 @@
       <!-- 1.顶部:展开/收起按钮 -->
       <div class="toggle-box" :style="{ justifyContent: isCollapsed ? 'center' : 'flex-end' }">
         <el-button link @click="isCollapsed = !isCollapsed" class="collapse-btn" :title="isCollapsed ? '展开侧边栏' : '收起侧边栏'">
-          <span style="font-size: 16px;">{{ isCollapsed ? '👉' : '👈' }}</span>
+          <span style="font-size: 16px;">{{ isCollapsed ? '->' : '<-' }}</span>
         </el-button>
       </div>
       <!--2.新建任务按钮 -->
