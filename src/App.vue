@@ -27,6 +27,7 @@
           <CodeViewer
               :generated-files="generatedFiles"
               :is-generating="isGenerating"
+              :task-id="currentTaskId"
               @download="downloadSourceCode"
           />
         </el-container>
